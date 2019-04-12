@@ -4,6 +4,7 @@ import com.example.demo.component.CharacterMapperPeople;
 import com.example.demo.component.CharacterMapperSpecies;
 import com.example.demo.domain.Results;
 import com.example.demo.domain.StarWarsPerson;
+import com.example.demo.domain.StarWarsSpecies;
 import com.example.demo.repository.StarWarsPersonRepository;
 import com.example.demo.repository.StarWarsResultsRepository;
 import com.example.demo.repository.StarWarsSpeciesRepository;
@@ -60,41 +61,43 @@ public class TestMainController {
     @MockBean
     Random random;
 
-    @Test
-    public void createCharacterName() throws Exception {
+//    @Test
+//    public void TestCreateCharacter() throws Exception {
 //        Mockito.when(characterMapperPeople.getMapForRandomGenerationPeople()
-//        ).thenReturn(TestUtils.generateMapOf1Characters());
-//        System.out.println("1");
+//        ).thenReturn(TestUtils.generateMapOfPeople());
+//        StarWarsPerson starWarsPerson = TestUtils.generateC3PO();
+//        String json = new ObjectMapper().writeValueAsString(starWarsPerson);
+//        int peopleId = 1;
+//        Mockito.when(apiService.createURL("https://swapi.co/api/people/" + peopleId, "GET")
+//        ).thenReturn(json);
+//        Mockito.when(starWarsPersonRepository.save(starWarsPerson))
+//                .thenReturn(starWarsPerson);
+//        Mockito.when(random
+//                .nextInt(characterMapperPeople.getMapForRandomGenerationPeople().size() + 1))
+//                .thenReturn(1);
+//        Mockito.when(starWarsPersonRepository.byName(starWarsPerson.getName()))
+//                .thenReturn(TestUtils.generateBiggs());
 //        Mockito.when(characterMapperSpecies.getMapForRandomGenerationSpecies()
-//        ).thenReturn(TestUtils.generateMapOf1Species());
-//        System.out.println("2");
-//        StarWarsPerson starWarsPerson = TestUtils.generateLuke();
-//        System.out.println(starWarsPerson.toString());
-//        ObjectWriter objectWriter = new ObjectMapper().writer().withDefaultPrettyPrinter();
-//        String jsonPerson = objectWriter.writeValueAsString(starWarsPerson);
-//        System.out.println(jsonPerson);
-//        Mockito.when(apiService.createURL("https://swapi.co/api/people/1/", "GET")
-//        ).thenReturn(jsonPerson);
-//        System.out.println("obj mapper start");
-//
-//        Mockito.when(starWarsPersonRepository.save(starWarsPerson)).thenReturn(TestUtils.generateLuke());
-//        System.out.println("Luke generated");
-//        UUID uuidLuke = UUID.fromString("0a7ec959-fd82-4f12-beb9-bb2a59c77e39");
-//        Mockito.when(starWarsPersonRepository.existsById(uuidLuke)).thenReturn(true);
+//        ).thenReturn(TestUtils.generateMapOfSpecies());
+//        StarWarsSpecies starWarsSpecies = TestUtils.generateIktotchi();
+//        String jsonS = new ObjectMapper().writeValueAsString(starWarsSpecies);
+//        Mockito.when(random
+//                .nextInt(characterMapperSpecies.getMapForRandomGenerationSpecies().size() + 1))
+//                .thenReturn(1);
+//        Mockito.when(starWarsSpeciesRepository.byName(starWarsSpecies.getName()))
+//                .thenReturn(starWarsSpecies);
+//        int randomIdSpecies = 1;
+//        Mockito.when(apiService.createURL("https://swapi.co/api/species/" + randomIdSpecies, "GET"))
+//                .thenReturn(jsonS);
 //
 //        Results results = TestUtils.generateResult();
-//        System.out.println(results);
-//        Mockito.when(starWarsResultsRepository.getOne(results.getUuid())).thenReturn(results);
-//
-//        Mockito.when(random.nextInt()).thenReturn(1);
-//
-//        Mockito.when(starWarsResultsRepository.save(results)).thenReturn(TestUtils.generateResult());
-//
-//        this.mockMvc.perform(post("/create/people/Luke Skywalker")).andDo(print()).
+//        Mockito.when(starWarsResultsRepository.save(results)).thenReturn(results);
+//        this.mockMvc.perform(post("http://localhost:8080/create/people/C-3PO"))
+//                .andDo(print()).
 //                andExpect(status().isOk()).
 //                andExpect(content().contentType("application/json;charset=UTF-8")).
 //                andExpect(jsonPath("$.uuid").value("0a7ec959-fd82-4f12-beb9-bb2a59c77e00"));
-    }
+//    }
 
 
     @Test
@@ -102,7 +105,6 @@ public class TestMainController {
         UUID uuid = UUID.fromString("0a7ec959-fd82-4f12-beb9-bb2a59c77e38");
 
         Mockito.when(starWarsResultsRepository.getOne(uuid)).thenReturn(TestUtils.generateResult());
-
         this.mockMvc.perform(get("/get/0a7ec959-fd82-4f12-beb9-bb2a59c77e38")).andDo(print()).andExpect(status().isOk()).
                 andExpect(content().contentType("application/json;charset=UTF-8")).
                 andExpect(jsonPath("$.response").value("The Luke Skywalker is human , as Luke Skywalker and not mammal as, Human"));

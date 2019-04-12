@@ -2,16 +2,12 @@ package com.example.demo.controller;
 
 import com.example.demo.domain.Pagination;
 import com.example.demo.domain.ResponseWire;
-import com.example.demo.domain.StarWarsPerson;
 import com.example.demo.repository.StarWarsPersonRepository;
 import com.example.demo.repository.StarWarsResultsRepository;
 import com.example.demo.repository.StarWarsSpeciesRepository;
 import com.example.demo.service.StarWarsServiceImpl;
-//import com.example.demo.utils.Message;
 import com.example.demo.utils.ControllerMessage;
-import com.example.demo.utils.ResponceForMethodGenerateSameAndDifferentPerson;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
@@ -20,7 +16,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.IOException;
 import java.util.*;
 
 @RestController
@@ -41,8 +36,8 @@ public class MainControllers {
     }
 
     @PostMapping("/create/{character}/{name}")
-    public ResponseWire createCharacterName(@PathVariable String name, @PathVariable String character) {
-        UUID uuidCharacter = starWarsServiceImpl.putCharacterToDB(name, character);
+    public ResponseWire createCharacter(@PathVariable String name, @PathVariable String character) {
+        Object uuidCharacter = starWarsServiceImpl.putCharacterToDB(name, character);
         return starWarsServiceImpl.generateSameAndDifferentCharacter(uuidCharacter, character);
     }
 

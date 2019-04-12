@@ -4,7 +4,7 @@ import com.example.demo.component.CharacterMapperPeople;
 import com.example.demo.component.CharacterMapperSpecies;
 import com.example.demo.customExceptions.CustomIOException;
 import com.example.demo.customExceptions.CustomNoSuchCharacterException;
-import com.example.demo.customExceptions.EntityNotFoundException;
+import com.example.demo.customExceptions.NoSuchResultUUIDException;
 import com.example.demo.domain.*;
 import com.example.demo.repository.StarWarsPersonRepository;
 import com.example.demo.repository.StarWarsResultsRepository;
@@ -13,7 +13,7 @@ import com.example.demo.utils.ControllerMessage;
 import com.example.demo.utils.ResponceForMethodGenerateSameAndDifferentPerson;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
+
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -23,6 +23,8 @@ import java.util.*;
 
 @Service
 @PropertySource("classpath:application.properties")
+
+
 public class StarWarsServiceImpl implements StarWarsService {
 
 
@@ -44,86 +46,100 @@ public class StarWarsServiceImpl implements StarWarsService {
     }
 
     @Override
-    public UUID putCharacterToDB(String name, String character) {
+    public Object putCharacterToDB(String name, String character) {
 
-        if (characterMapperPeople.getMapForRandomGenerationPeople().containsKey(name) || characterMapperSpecies.getMapForRandomGenerationSpecies().containsKey(name)) {
-            if (character.equals("people")) {
-                try {
-                    Integer peopleId = characterMapperPeople.getMapForRandomGenerationPeople().get(name);
-                    String json = null;
-                    json = apiService.createURL("https://swapi.co/api/" + character + "/" + peopleId, "GET");
-                    StarWarsPerson objFromJson = null;
-                    objFromJson = new ObjectMapper().readValue(json, StarWarsPerson.class);
-                    StarWarsPerson person = starWarsPersonRepository.save(objFromJson);
-                    return person.getId();
-                } catch (IOException e) {
-                    throw new CustomIOException("Something went wrong!");
-                }
-            } else if (character.equals("species")) {
-                try {
-                    Integer speciesId = characterMapperSpecies.getMapForRandomGenerationSpecies().get(name);
-                    String json = null;
-                    json = apiService.createURL("https://swapi.co/api/" + character + "/" + speciesId, "GET");
-                    StarWarsSpecies objFromJson = null;
-                    objFromJson = new ObjectMapper().readValue(json, StarWarsSpecies.class);
-                    StarWarsSpecies species = starWarsSpeciesRepository.save(objFromJson);
-                    return species.getId();
-                } catch (IOException e) {
-                    throw new CustomIOException("Something went wrong!");
-                }
-            } else {
-                throw new CustomNoSuchCharacterException("There is no such character !");
-            }
+        if (character.equals("people")) {
+            return putPeopleToDB(name);
+        } else if (character.equals("species")) {
+            return putSpeciesToDB(name);
         } else {
-            throw new CustomNoSuchCharacterException("There is no character with name " + name);
+            throw new CustomNoSuchCharacterException("There is no such character : " + character);
         }
     }
 
     @Override
-    public ResponseWire generateSameAndDifferentCharacter(UUID characterUuid, String character) {
-        if (starWarsPersonRepository.existsById(characterUuid) || starWarsSpeciesRepository.existsById(characterUuid)) {
-            Results savedResult;
-            ArrayList<Object> listSameDifferentRace = new ArrayList<>();
-            Results results;
-            if (character.equals("people")) {
-                try {
-                    StarWarsPerson starWarsPerson = starWarsPersonRepository.getOne(characterUuid);
-                    listSameDifferentRace.add(0, starWarsPerson);
-                    StarWarsPerson characterSameRace = getRandomPeople();
-                    listSameDifferentRace.add(1, characterSameRace);
-                    StarWarsSpecies characterDifferentRace = getRandomSpecies();
-                    listSameDifferentRace.add(2, characterDifferentRace);
-                    results = new Results(listSameDifferentRace, "people");
-                    savedResult = starWarsResultsRepository.save(results);
-                    ResponseWire responseWire = new ResponseWire();
-                    responseWire.setUuid(savedResult.getUuid().toString());
-                    return responseWire;
-                } catch (IOException e) {
-                    throw new CustomIOException("Something went wrong!");
-                }
-            } else if (character.equals("species")) {
-                try {
-                    StarWarsSpecies starWarsSpecies = starWarsSpeciesRepository.getOne(characterUuid);
-                    listSameDifferentRace.add(0, starWarsSpecies);
-                    StarWarsSpecies characterSameRace = getRandomSpecies();
-                    listSameDifferentRace.add(1, characterSameRace);
-                    StarWarsPerson characterDifferentRace = getRandomPeople();
-                    listSameDifferentRace.add(2, characterDifferentRace);
-                    results = new Results(listSameDifferentRace, "species");
-                    savedResult = starWarsResultsRepository.save(results);
-                    ResponseWire responseWire = new ResponseWire();
-                    responseWire.setUuid(savedResult.getUuid().toString());
-                    return responseWire;
-                } catch (IOException e) {
-                    throw new CustomIOException("Something went wrong!");
-                }
+    public StarWarsPerson putPeopleToDB(String name) {
+        try {
+            if (characterMapperPeople.getMapForRandomGenerationPeople().containsKey(name)) {
+                Integer peopleId = characterMapperPeople.getMapForRandomGenerationPeople().get(name);
+                String json = apiService.createURL("https://swapi.co/api/people/" + peopleId, "GET");
+                StarWarsPerson objFromJson = new ObjectMapper().readValue(json, StarWarsPerson.class);
+                return starWarsPersonRepository.save(objFromJson);
             } else {
-                throw new CustomNoSuchCharacterException("There is no such character !");
+                throw new CustomNoSuchCharacterException("There is no character with name " + name);
             }
-        } else {
-            throw new EntityNotFoundException("There is no character with id :" + characterUuid + " in database!");
+        } catch (IOException e) {
+            throw new CustomIOException("Something went wrong!");
         }
     }
+
+    @Override
+    public StarWarsSpecies putSpeciesToDB(String name) {
+        try {
+            if (characterMapperSpecies.getMapForRandomGenerationSpecies().containsKey(name)) {
+                Integer speciesId = characterMapperSpecies.getMapForRandomGenerationSpecies().get(name);
+                String json = apiService.createURL("https://swapi.co/api/species/" + speciesId, "GET");
+                StarWarsSpecies objFromJson = new ObjectMapper().readValue(json, StarWarsSpecies.class);
+                return starWarsSpeciesRepository.save(objFromJson);
+            } else {
+                throw new CustomNoSuchCharacterException("There is no character with name " + name);
+            }
+        } catch (IOException e) {
+            throw new CustomIOException("Something went wrong!");
+        }
+
+    }
+
+    @Override
+    public ResponseWire generateSameAndDifferentCharacter(Object object, String character) {
+
+        if (character.equals("people")) {
+            return generatePeople((StarWarsPerson) object);
+        } else if (character.equals("species")) {
+            return generateSpecies((StarWarsSpecies) object);
+        } else {
+            throw new CustomNoSuchCharacterException("There is no such character !");
+        }
+    }
+
+    @Override
+    public ResponseWire generatePeople(StarWarsPerson starWarsPerson) {
+        try {
+            ArrayList<Object> listSameDifferentRace = new ArrayList<>();
+            listSameDifferentRace.add(0, starWarsPerson);
+            StarWarsPerson characterSameRace = getRandomPeople();
+            listSameDifferentRace.add(1, characterSameRace);
+            StarWarsSpecies characterDifferentRace = getRandomSpecies();
+            listSameDifferentRace.add(2, characterDifferentRace);
+            Results results = new Results(listSameDifferentRace, "people");
+            Results savedResult = starWarsResultsRepository.save(results);
+            ResponseWire responseWire = new ResponseWire();
+            responseWire.setUuid(savedResult.getUuid().toString());
+            return responseWire;
+        } catch (IOException e) {
+            throw new CustomIOException("Something went wrong!");
+        }
+    }
+
+    @Override
+    public ResponseWire generateSpecies(StarWarsSpecies starWarsSpecies) {
+        ArrayList<Object> listSameDifferentRace = new ArrayList<>();
+        try {
+            listSameDifferentRace.add(0, starWarsSpecies);
+            StarWarsSpecies characterSameRace = getRandomSpecies();
+            listSameDifferentRace.add(1, characterSameRace);
+            StarWarsPerson characterDifferentRace = getRandomPeople();
+            listSameDifferentRace.add(2, characterDifferentRace);
+            Results results = new Results(listSameDifferentRace, "species");
+            Results savedResult = starWarsResultsRepository.save(results);
+            ResponseWire responseWire = new ResponseWire();
+            responseWire.setUuid(savedResult.getUuid().toString());
+            return responseWire;
+        } catch (IOException e) {
+            throw new CustomIOException("Something went wrong!");
+        }
+    }
+
 
     @Override
     public String findRandomCharacterInMap(String character, Integer randomId) {
@@ -146,15 +162,14 @@ public class StarWarsServiceImpl implements StarWarsService {
     @Override
     public StarWarsPerson getRandomPeople() throws IOException {
         Random random = new Random();
-        Integer randomIdPeople = random.nextInt(characterMapperPeople.getMapForRandomGenerationPeople().size()) + 1;
+        Integer randomIdPeople = random.nextInt(characterMapperPeople.getMapForRandomGenerationPeople().size() + 1);
         String randomCharacterName = findRandomCharacterInMap("people", randomIdPeople);
         if (randomCharacterName == null) {
             throw new CustomNoSuchCharacterException("Character has not have name");
         }
-        StarWarsPerson starWarsPerson;
         if (starWarsPersonRepository.byName(randomCharacterName) == null) {
             String getRandomPeople = apiService.createURL("https://swapi.co/api/people/" + randomIdPeople, "GET");
-            starWarsPerson = new ObjectMapper().readValue(getRandomPeople, StarWarsPerson.class);
+            StarWarsPerson starWarsPerson = new ObjectMapper().readValue(getRandomPeople, StarWarsPerson.class);
             return starWarsPersonRepository.save(starWarsPerson);
         }
         return starWarsPersonRepository.byName(randomCharacterName);
@@ -163,15 +178,15 @@ public class StarWarsServiceImpl implements StarWarsService {
     @Override
     public StarWarsSpecies getRandomSpecies() throws IOException {
         Random random = new Random();
-        Integer randomIdSpecies = random.nextInt(characterMapperSpecies.getMapForRandomGenerationSpecies().size()) + 1;
+        Integer randomIdSpecies = random.nextInt(characterMapperSpecies.getMapForRandomGenerationSpecies().size() + 1);
         String randomCharacterName = findRandomCharacterInMap("species", randomIdSpecies);
+
         if (randomCharacterName == null) {
             throw new CustomNoSuchCharacterException("Character has not have name");
         }
-        StarWarsSpecies starWarsSpecies;
         if (starWarsSpeciesRepository.byName(randomCharacterName) == null) {
             String getRandomSpecies = apiService.createURL("https://swapi.co/api/species/" + randomIdSpecies, "GET");
-            starWarsSpecies = new ObjectMapper().readValue(getRandomSpecies, StarWarsSpecies.class);
+            StarWarsSpecies starWarsSpecies = new ObjectMapper().readValue(getRandomSpecies, StarWarsSpecies.class);
             return starWarsSpeciesRepository.save(starWarsSpecies);
         }
         return starWarsSpeciesRepository.byName(randomCharacterName);
@@ -223,7 +238,12 @@ public class StarWarsServiceImpl implements StarWarsService {
     @Override
     public ControllerMessage getResultByUUID(UUID uuid) {
         ResponceForMethodGenerateSameAndDifferentPerson message;
-        Results result = starWarsResultsRepository.getOne(uuid);
+        Results result;
+        try {
+            result = starWarsResultsRepository.getOne(uuid);
+        } catch (NumberFormatException e) {
+            throw new NoSuchResultUUIDException("UUID is invalid!");
+        }
         ArrayList<Object> resultList = result.getList();
 
         if (result.getRace().equals("people")) {

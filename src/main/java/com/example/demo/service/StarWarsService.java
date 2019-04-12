@@ -13,9 +13,17 @@ import java.util.UUID;
 
 public interface StarWarsService {
 
-    UUID putCharacterToDB(String name, String character) throws IOException;
+    Object putCharacterToDB(String name, String character) throws IOException;
 
-    ResponseWire generateSameAndDifferentCharacter(UUID uuid, String character) throws IOException;
+    StarWarsPerson putPeopleToDB(String name);
+
+    StarWarsSpecies putSpeciesToDB(String name);
+
+    ResponseWire generateSameAndDifferentCharacter(Object object, String character);
+
+    ResponseWire generatePeople(StarWarsPerson starWarsPerson);
+
+    ResponseWire generateSpecies(StarWarsSpecies starWarsSpecies);
 
     String findRandomCharacterInMap(String character, Integer randomId);
 
